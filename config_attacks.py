@@ -69,7 +69,7 @@ ATTACK_CONFIG = {
 
 # Aggregator parameters
 AGGREGATOR_CONFIG = {
-    "single_aggregator": "MultiKrum",  # "TrMean", "Median", "Krum", # "MultiKrum", # "MDA", "Average"
+    "single_aggregator": "PCAEigenvalueAggregatorV2",  # "TrMean", "Median", "Krum", # "MultiKrum", # "MDA", "Average"
     "use_pre_aggregation": True,  # option
     "pre_aggregation_defenses": [
         {"name": "Clipping", "parameters": {"c": 2.0}},
@@ -79,7 +79,7 @@ AGGREGATOR_CONFIG = {
 
 
 # Output/Result parameters
-results_suffix = f"_{AGGREGATOR_CONFIG['single_aggregator']}_preaggreg_newparams_{MODEL_CONFIG['optimizer_name']}_{DATA_DISTRIBUTION_CONFIG['distribution_name']}"
+results_suffix = f"_test_PCA_{AGGREGATOR_CONFIG['single_aggregator']}_preaggreg_newparams_{MODEL_CONFIG['optimizer_name']}_{DATA_DISTRIBUTION_CONFIG['distribution_name']}"
 OUTPUT_CONFIG = {
     "plot_save_path": f"results/attacks/fl_comparison{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.png",
     "results_save_path": f"results/attacks/simulation_results{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.json",

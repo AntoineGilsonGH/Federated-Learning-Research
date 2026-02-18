@@ -87,7 +87,7 @@ AGGREGATOR_CONFIG = {
 }
 
 # Output/Result parameters
-results_suffix = f"ALL_CUSTOM_{ATTACK_CONFIG['attack_name']}_{MODEL_CONFIG["optimizer_name"]}"
+results_suffix = f"_ALL_CUSTOM_{ATTACK_CONFIG['attack_name']}_{MODEL_CONFIG["optimizer_name"]}"
 OUTPUT_CONFIG = {
     "plot_save_path": f"results/defenses/fl_comparison{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.png",
     "results_save_path": f"results/defenses/simulation_results{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.json",

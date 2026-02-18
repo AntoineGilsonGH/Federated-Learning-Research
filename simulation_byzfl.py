@@ -7,7 +7,6 @@ import copy
 import torch
 from torchvision import datasets, transforms
 from byzfl import Client, Server, ByzantineClient, DataDistributor
-#import byzfl.aggregators as byzfl_agg  # Import the aggregators module
 import byzfl.aggregators as byzfl_agg  # Import the specific module
 
 from utils.train import train
