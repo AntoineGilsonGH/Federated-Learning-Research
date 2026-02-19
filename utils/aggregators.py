@@ -6,6 +6,10 @@ These avoid creating large covariance matrices.
 import torch
 import numpy as np
 
+from config import DEVICE as CURRENT_DEVICE
+
+# CURRENT_DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
 
 class PCAEigenvalueAggregator:
     """
@@ -35,7 +39,7 @@ class PCAEigenvalueAggregator:
         
         # Ensure on CPU for large computations to avoid GPU OOM
         original_device = vectors.device
-        vectors = vectors.cpu()
+        vectors = vectors  # .cpu()
         
         n_clients = vectors.shape[0]
         dim = vectors.shape[1]
@@ -90,8 +94,10 @@ class PCAEigenvalueAggregator:
         """Power iteration to find principal eigenvector without covariance matrix."""
         n_clients, dim = centered.shape
         
+        centered = centered.to(torch.device(CURRENT_DEVICE))
+        
         # Initialize random vector
-        v = torch.randn(dim)
+        v = torch.randn(dim).to(torch.device(CURRENT_DEVICE))
         v = v / torch.norm(v)
         
         for _ in range(n_iterations):
@@ -136,7 +142,7 @@ class PCAEigenvalueAggregatorV2:
         
         # Move to CPU for safety
         original_device = vectors.device
-        vectors = vectors.cpu()
+        vectors = vectors  # .cpu()
         
         n_clients = vectors.shape[0]
         
@@ -178,9 +184,10 @@ class PCAEigenvalueAggregatorV2:
         Returns top components and singular values.
         """
         n_samples, n_features = X.shape
+        X = X.to(torch.device(CURRENT_DEVICE))
         
         # Generate random matrix
-        Q = torch.randn(n_features, n_components)
+        Q = torch.randn(n_features, n_components).to(torch.device(CURRENT_DEVICE))
         
         # Power iteration for better accuracy
         for _ in range(n_iterations):
@@ -224,7 +231,7 @@ class RobustPCAEigenvalueAggregator:
         
         # Move to CPU
         original_device = vectors.device
-        vectors = vectors.cpu()
+        vectors = vectors  # .cpu()
         
         current_vectors = vectors.clone()
         n_clients = vectors.shape[0]
@@ -273,9 +280,10 @@ class RobustPCAEigenvalueAggregator:
     def _power_method(self, X, n_iterations=20):
         """Power iteration to find principal eigenvector."""
         n_samples, n_features = X.shape
-        
+        X = X.to(torch.device(CURRENT_DEVICE))
+
         # Initialize random vector
-        v = torch.randn(n_features)
+        v = torch.randn(n_features).to(torch.device(CURRENT_DEVICE))
         v = v / torch.norm(v)
         
         for _ in range(n_iterations):
