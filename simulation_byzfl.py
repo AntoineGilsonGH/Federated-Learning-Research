@@ -3,6 +3,7 @@ import json
 import os
 from typing import List, Dict, Any
 import copy
+import numpy as np
 
 import torch
 from torchvision import datasets, transforms
@@ -420,6 +421,7 @@ class ByzFLSimulation:
         plt.figure(figsize=(10, 6))
 
         colors = ["red", "green", "blue", "orange", "purple", "brown"]
+        colors = plt.cm.tab20(np.linspace(0, 1, 20))  # 20 colors
         linestyles = ["-", "--", "-.", ":", "-", "--"]
 
         x_step = 10  # distance between evaluation points

@@ -1,11 +1,13 @@
 import torch
 from torchvision import datasets, transforms
-from byzfl import Client, Server, ByzantineClient, DataDistributor
 import matplotlib.pyplot as plt
 import json
 import os
 from typing import List, Dict, Any
 import copy
+import numpy as np
+
+from byzfl import Client, Server, ByzantineClient, DataDistributor
 import byzfl.aggregators as byzfl_agg
 
 from utils.train_attacks import train_attacks
@@ -414,6 +416,7 @@ class ByzFLSimulation_attacks:
         plt.figure(figsize=(10, 6))
 
         colors = ["red", "green", "blue", "orange", "purple", "brown"]
+        colors = plt.cm.tab20(np.linspace(0, 1, 20))  # 20 colors
         linestyles = ["-", "--", "-.", ":", "-", "--"]
 
         x_step = 10  # distance between evaluation points
