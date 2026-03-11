@@ -68,11 +68,16 @@ ATTACK_CONFIG = {
 AGGREGATOR_CONFIG = {
     "aggregators_to_compare": [
         "Average",
+        "MultiKrum",
         "TrMean",
         "Median",
         "Krum",
-        # "MultiKrum",
-        # "MDA",
+        "SMEA",
+        "CAF",
+        "MDA",
+        "PCAEigenvalueAggregator",
+        "PCAEigenvalueAggregatorV2",
+        "RobustPCAEigenvalueAggregator",
     ],
     "single_aggregator": "TrMean",
     "pre_aggregation_defenses": [
@@ -82,10 +87,10 @@ AGGREGATOR_CONFIG = {
 }
 
 # Output/Result parameters
-results_suffix = f"_{ATTACK_CONFIG['attack_name']}_{MODEL_CONFIG["optimizer_name"]}"
+results_suffix = f"_ALL_CUSTOM_{ATTACK_CONFIG['attack_name']}_{MODEL_CONFIG["optimizer_name"]}"
 OUTPUT_CONFIG = {
-    "plot_save_path": f"results/fl_comparison{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.png",
-    "results_save_path": f"results/simulation_results{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.json",
+    "plot_save_path": f"results/defenses/fl_comparison{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.png",
+    "results_save_path": f"results/defenses/simulation_results{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.json",
     "verbose": True,
     "save_models": False,
 }

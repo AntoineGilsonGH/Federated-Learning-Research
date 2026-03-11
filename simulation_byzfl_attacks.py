@@ -1,13 +1,17 @@
 import torch
 from torchvision import datasets, transforms
-from byzfl import Client, Server, ByzantineClient, DataDistributor
 import matplotlib.pyplot as plt
 import json
 import os
 from typing import List, Dict, Any
 import copy
+import numpy as np
+
+from byzfl import Client, Server, ByzantineClient, DataDistributor
+import byzfl.aggregators as byzfl_agg
 
 from utils.train_attacks import train_attacks
+from utils.aggregators import CUSTOM_AGGREGATORS
 
 
 class ByzFLSimulation_attacks:
@@ -52,9 +56,24 @@ class ByzFLSimulation_attacks:
         # Results storage
         self.results = {}
 
+        self.custom_aggregators = CUSTOM_AGGREGATORS
+        self.builtin_aggregators = ["TrMean", "Krum", "Median", "Average", "MultiKrum", "MDA", "SMEA", "CAF"]
+
+        self._patch_aggregators()
+
         # Setup
         self._prepare_data()
         self._setup_clients()
+
+    def _patch_aggregators(self):
+        """
+        Patch custom aggregators into ByzFL's aggregators module.
+        This makes them available to the Server class via getattr.
+        """
+        print("Patching custom aggregators into byzfl.aggregators.aggregators...")
+        for agg_name, agg_class in self.custom_aggregators.items():
+            setattr(byzfl_agg, agg_name, agg_class)
+        print(f"Patched {len(self.custom_aggregators)} custom aggregators: {list(self.custom_aggregators.keys())}")
 
     def _get_dataset_transform(self):
         """Get appropriate transform for the dataset."""
@@ -158,6 +177,38 @@ class ByzFLSimulation_attacks:
     def _setup_server(self, aggregator_name: str):
         """Initialize server with specified aggregator."""
         # Determine aggregator parameters
+        if aggregator_name in self.builtin_aggregators:
+            aggregator_info = self._setup_builtin_aggregator(aggregator_name)
+        elif aggregator_name in self.custom_aggregators:
+            aggregator_info = self._setup_custom_aggregator(aggregator_name)
+        else:
+            raise ValueError(f"Unknown aggregator: {aggregator_name}"
+                             f"Built-in: {self.builtin_aggregators}, "
+                             f"Custom: {list(self.custom_aggregators.keys())}")
+
+        # Configure pre-aggregation defenses
+        pre_agg_list = []
+        if self.aggregator_config.get("use_pre_aggregation", False):
+            pre_agg_list = self.aggregator_config.get("pre_aggregation_defenses", [])
+
+        # Server configuration
+        server_config = {
+            "device": self.device,
+            "model_name": self.model_config.get("model_name", "cnn_mnist"),
+            "test_loader": self.test_loader,
+            "optimizer_name": self.server_config.get("optimizer_name", "SGD"),
+            "learning_rate": self.server_config.get("learning_rate", 0.1),
+            "weight_decay": self.server_config.get("weight_decay", 0.0001),
+            "milestones": self.server_config.get("milestones", [1000]),
+            "learning_rate_decay": self.server_config.get("learning_rate_decay", 0.25),
+            "aggregator_info": aggregator_info,
+            "pre_agg_list": pre_agg_list,
+        }
+
+        return Server(server_config)
+
+    def _setup_builtin_aggregator(self, aggregator_name):
+        aggregator_info = {}
         if aggregator_name == "TrMean":
             aggregator_info = {
                 "name": "TrMean",
@@ -182,29 +233,52 @@ class ByzFLSimulation_attacks:
                 "name": "MDA",
                 "parameters": {"f": self.num_byzantine_clients},
             }
+        elif aggregator_name == "SMEA":
+            aggregator_info = {
+                "name": "SMEA",
+                "parameters": {"f": self.num_byzantine_clients},
+            }
+        elif aggregator_name == "CAF":
+            aggregator_info = {
+                "name": "CAF",
+                "parameters": {"f": self.num_byzantine_clients},
+            }
         else:
             raise ValueError(f"Unknown aggregator: {aggregator_name}")
+        
+        return aggregator_info
 
-        # Configure pre-aggregation defenses
-        pre_agg_list = []
-        if self.aggregator_config.get("use_pre_aggregation", False):
-            pre_agg_list = self.aggregator_config.get("pre_aggregation_defenses", [])
-
-        # Server configuration
-        server_config = {
-            "device": self.device,
-            "model_name": self.model_config.get("model_name", "cnn_mnist"),
-            "test_loader": self.test_loader,
-            "optimizer_name": self.server_config.get("optimizer_name", "SGD"),
-            "learning_rate": self.server_config.get("learning_rate", 0.1),
-            "weight_decay": self.server_config.get("weight_decay", 0.0001),
-            "milestones": self.server_config.get("milestones", [1000]),
-            "learning_rate_decay": self.server_config.get("learning_rate_decay", 0.25),
-            "aggregator_info": aggregator_info,
-            "pre_agg_list": pre_agg_list,
+    def _setup_custom_aggregator(self, aggregator_name: str) -> Dict[str, Any]:
+        """
+        Set up custom aggregator.
+        
+        Args:
+            aggregator_name: Name of the custom aggregator
+            
+        Returns:
+            Dictionary with aggregator info for server configuration
+        """
+        # Get the aggregator class
+        aggregator_class = self.custom_aggregators[aggregator_name]
+        
+        # Get custom parameters from config
+        custom_params = self.aggregator_config.get("custom_parameters", {})
+        agg_params = custom_params.get(aggregator_name, {})
+        
+        # Ensure f is included
+        agg_params["f"] = self.num_byzantine_clients
+        
+        # Create aggregator instance
+        aggregator_instance = aggregator_class(**agg_params)
+        
+        # Return in format expected by ByzFL Server
+        # Note: This assumes ByzFL can handle a 'custom_aggregator' field
+        return {
+            "name": aggregator_name,
+            "parameters": agg_params,
+            "custom_aggregator": aggregator_instance,  # Pass the instance directly
+            "is_custom": True,
         }
-
-        return Server(server_config)
 
     def _setup_byzantine_client(self, attack: Dict[str, Any] = None):
         """
@@ -342,6 +416,7 @@ class ByzFLSimulation_attacks:
         plt.figure(figsize=(10, 6))
 
         colors = ["red", "green", "blue", "orange", "purple", "brown"]
+        colors = plt.cm.tab20(np.linspace(0, 1, 20))  # 20 colors
         linestyles = ["-", "--", "-.", ":", "-", "--"]
 
         x_step = 10  # distance between evaluation points
