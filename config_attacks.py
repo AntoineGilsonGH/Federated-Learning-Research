@@ -9,9 +9,9 @@ DEVICE = "cuda"
 
 # Simulation parameters
 SIMULATION_CONFIG = {
-    "num_honest": 7,  # Number of honest clients
-    "num_byzantine": 3,  # Number of Byzantine clients
-    "rounds": 200,  # Number of communication rounds
+    "num_honest": 70,  # Number of honest clients
+    "num_byzantine": 30,  # Number of Byzantine clients
+    "rounds": 100,  # Number of communication rounds
     "batch_size": 64,
     "device": DEVICE,
     "dataset_name": "MNIST",  # Options: MNIST, CIFAR10, FashionMNIST
@@ -57,19 +57,18 @@ CLIENT_CONFIG = {
 ATTACK_CONFIG = {
     "attacks_to_compare": [
         {"attack_name": "ALittleIsEnough", "attack_parameters": {"tau": 2.5}},
-        {"attack_name": "SignFlipping", "attack_parameters": {"scale": 5}},
+        # {"attack_name": "Optimal_ALittleIsEnough", "attack_parameters": {}},
+        # {"attack_name": "SignFlipping", "attack_parameters": {}},
         {"attack_name": "Gaussian", "attack_parameters": {"sigma": 0.25}},
-        {"attack_name": "InnerProductManipulation", "attack_parameters": {"tau": 1.5}},
-        # {
-        #     "attack_name": "Optimal_InnerProductManipulation",
-        #     "attack_parameters": {"tau": 3.0},
-        # },
+        # {"attack_name": "InnerProductManipulation", "attack_parameters": {}},
+        {"attack_name": "Inf", "attack_parameters": {}},
+        {"attack_name": "Optimal_InnerProductManipulation", "attack_parameters": {}},
     ]
 }
 
 # Aggregator parameters
 AGGREGATOR_CONFIG = {
-    "single_aggregator": "PCAEigenvalueAggregatorV2",  # "TrMean", "Median", "Krum", # "MultiKrum", # "MDA", "Average"
+    "single_aggregator": "PCAEigenvalueAggregator",  # "TrMean", "Median", "Krum", # "MultiKrum", # "MDA", "Average"
     "use_pre_aggregation": True,  # option
     "pre_aggregation_defenses": [
         {"name": "Clipping", "parameters": {"c": 2.0}},
@@ -79,7 +78,7 @@ AGGREGATOR_CONFIG = {
 
 
 # Output/Result parameters
-results_suffix = f"_test_PCA_{AGGREGATOR_CONFIG['single_aggregator']}_preaggreg_newparams_{MODEL_CONFIG['optimizer_name']}_{DATA_DISTRIBUTION_CONFIG['distribution_name']}"
+results_suffix = f"_test_{AGGREGATOR_CONFIG['single_aggregator']}_{MODEL_CONFIG['optimizer_name']}_{DATA_DISTRIBUTION_CONFIG['distribution_name']}"
 OUTPUT_CONFIG = {
     "plot_save_path": f"results/attacks/fl_comparison{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.png",
     "results_save_path": f"results/attacks/simulation_results{results_suffix}_{SIMULATION_CONFIG['num_byzantine']}_{SIMULATION_CONFIG['num_honest']}.json",
