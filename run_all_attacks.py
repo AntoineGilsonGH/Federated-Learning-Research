@@ -33,7 +33,7 @@ EXPERIMENTS = [
 # We add the repo root to sys.path so the import works regardless of cwd
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-import main_bound_challenge_v5 as exp   # imports the module without running main()
+import main_bound_challenge as exp   # imports the module without running main()
 
 # ── Run each experiment ───────────────────────────────────────────────────────
 for i, cfg in enumerate(EXPERIMENTS):
